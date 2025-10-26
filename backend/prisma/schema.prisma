@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Schema público - Empresas e Super Admin
+model Company {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  email       String   @unique
+  phone       String?
+  address     String?
+  isActive    Boolean  @default(true)
+  plan        String   @default("basic") // basic, premium, enterprise
+  maxUsers    Int      @default(5)
+  schemaName  String   @unique // Nome do schema no PostgreSQL
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  admins      User[]
+
+  @@map("companies")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  name        String
+  role        Role     @default(USER)
+  companyId   String?
+  isActive    Boolean  @default(true)
+  permissions Json?    // Permissões específicas por usuário
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  resetToken  String?
+  resetTokenExpiry DateTime?
+
+  @@map("users")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  USER
+}
+
+// Schemas dinâmicos por tenant (criados em runtime)
+// Estes modelos serão criados em schemas separados para cada empresa
+
+// model Product {
+//   id                    String   @id @default(uuid())
+//   name                  String
+//   displayName           String   // Nome visível no cardápio
+//   categoryId            String
+//   description           String?  @db.Text
+//   price                 Decimal  @db.Decimal(10, 2)
+//   imageUrl              String?
+//   isAvailable           Boolean  @default(true)
+//   sku                   String?  @unique
+//   prepTime              Int?     // minutos
+//   cost                  Decimal? @db.Decimal(10, 2)
+//   stock                 Int?
+//   tags                  String[] // array de tags
+//   hasPromotion          Boolean  @default(false)
+//   promotionDiscount     Decimal? @db.Decimal(5, 2)
+//   nutritionalInfo       String?  @db.Text
+//   allergens             String?  @db.Text
+//   priority              Int      @default(0)
+//   availableSchedule     Json?    // {start: "11:00", end: "14:00"}
+//   createdAt             DateTime @default(now())
+//   updatedAt             DateTime @updatedAt
+//
+//   category              Category @relation(fields: [categoryId], references: [id])
+//   variations            ProductVariation[]
+//   additions             ProductAddition[]
+//
+//   @@map("products")
+// }
+
+// model Category {
+//   id          String    @id @default(uuid())
+//   name        String
+//   description String?
+//   priority    Int       @default(0)
+//   createdAt   DateTime  @default(now())
+//   updatedAt   DateTime  @updatedAt
+//
+//   products    Product[]
+//
+//   @@map("categories")
+// }
+
+// model ProductVariation {
+//   id          String   @id @default(uuid())
+//   productId   String
+//   name        String   // Ex: "Tamanho"
+//   value       String   // Ex: "P", "M", "G"
+//   priceAdjust Decimal  @db.Decimal(10, 2) @default(0)
+//
+//   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+//
+//   @@map("product_variations")
+// }
+
+// model ProductAddition {
+//   id          String   @id @default(uuid())
+//   productId   String
+//   name        String   // Ex: "Queijo extra"
+//   price       Decimal  @db.Decimal(10, 2)
+//
+//   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+//
+//   @@map("product_additions")
+// }

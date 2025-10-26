@@ -1,0 +1,53 @@
+import { Router } from 'express';
+import { AuthController } from '@/controllers/AuthController';
+import { CompanyController } from '@/controllers/CompanyController';
+import { UserController } from '@/controllers/UserController';
+import { CategoryController } from '@/controllers/CategoryController';
+import { ProductController } from '@/controllers/ProductController';
+import { authenticate, requireRole, checkPermission } from '@/middleware/auth';
+import { upload } from '@/middleware/upload';
+
+const router = Router();
+
+const authController = new AuthController();
+const companyController = new CompanyController();
+const userController = new UserController();
+const categoryController = new CategoryController();
+const productController = new ProductController();
+
+// Rotas públicas
+router.post('/auth/register', authController.register.bind(authController));
+router.post('/auth/login', authController.login.bind(authController));
+router.post('/auth/forgot-password', authController.forgotPassword.bind(authController));
+router.post('/auth/reset-password', authController.resetPassword.bind(authController));
+
+// Rotas autenticadas
+router.get('/auth/me', authenticate, authController.me.bind(authController));
+
+// Rotas de empresas (Super Admin)
+router.get('/companies', authenticate, requireRole('SUPER_ADMIN'), companyController.list.bind(companyController));
+router.post('/companies', authenticate, requireRole('SUPER_ADMIN'), companyController.create.bind(companyController));
+router.put('/companies/:id', authenticate, requireRole('SUPER_ADMIN'), companyController.update.bind(companyController));
+router.delete('/companies/:id', authenticate, requireRole('SUPER_ADMIN'), companyController.delete.bind(companyController));
+router.patch('/companies/:id/toggle-active', authenticate, requireRole('SUPER_ADMIN'), companyController.toggleActive.bind(companyController));
+
+// Rotas de usuários (Admin)
+router.get('/users', authenticate, requireRole('ADMIN', 'SUPER_ADMIN'), userController.list.bind(userController));
+router.post('/users', authenticate, requireRole('ADMIN'), userController.create.bind(userController));
+router.put('/users/:id', authenticate, requireRole('ADMIN'), userController.update.bind(userController));
+router.delete('/users/:id', authenticate, requireRole('ADMIN'), userController.delete.bind(userController));
+
+// Rotas de categorias (Admin e User com permissão)
+router.get('/categories', authenticate, categoryController.list.bind(categoryController));
+router.post('/categories', authenticate, checkPermission('categories.create'), categoryController.create.bind(categoryController));
+router.put('/categories/:id', authenticate, checkPermission('categories.edit'), categoryController.update.bind(categoryController));
+router.delete('/categories/:id', authenticate, checkPermission('categories.delete'), categoryController.delete.bind(categoryController));
+
+// Rotas de produtos (Admin e User com permissão)
+router.get('/products', authenticate, productController.list.bind(productController));
+router.get('/products/:id', authenticate, productController.getById.bind(productController));
+router.post('/products', authenticate, checkPermission('products.create'), upload.single('image'), productController.create.bind(productController));
+router.put('/products/:id', authenticate, checkPermission('products.edit'), upload.single('image'), productController.update.bind(productController));
+router.delete('/products/:id', authenticate, checkPermission('products.delete'), productController.delete.bind(productController));
+
+export default router;
