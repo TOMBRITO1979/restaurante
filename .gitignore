@@ -36,3 +36,7 @@ coverage/
 
 # Misc
 *.pem
+
+# Stack files with secrets
+restaurante-stack-final.yml
+restaurante-stack.yaml
