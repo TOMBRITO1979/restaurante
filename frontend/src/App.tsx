@@ -3,8 +3,16 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from '@/stores/authStore';
 import { Login } from '@/pages/Login';
+import { ForgotPassword } from '@/pages/ForgotPassword';
+import { ResetPassword } from '@/pages/ResetPassword';
 import { Dashboard } from '@/pages/Dashboard';
 import { Products } from '@/pages/Products';
+import { Categories } from '@/pages/Categories';
+import { Sales } from '@/pages/Sales';
+import { SalesHistory } from '@/pages/SalesHistory';
+import { Orders } from '@/pages/Orders';
+import { Users } from '@/pages/Users';
+import { Companies } from '@/pages/Companies';
 import { Loading } from '@/components/Loading';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -38,6 +46,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route
             path="/dashboard"
             element={
@@ -51,6 +61,54 @@ function App() {
             element={
               <PrivateRoute>
                 <Products />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/categories"
+            element={
+              <PrivateRoute>
+                <Categories />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/sales"
+            element={
+              <PrivateRoute>
+                <Sales />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <PrivateRoute>
+                <Orders />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/sales-history"
+            element={
+              <PrivateRoute>
+                <SalesHistory />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <PrivateRoute>
+                <Users />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/companies"
+            element={
+              <PrivateRoute>
+                <Companies />
               </PrivateRoute>
             }
           />

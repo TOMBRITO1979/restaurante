@@ -22,7 +22,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Não redirecionar se for erro na própria rota de login
+    const isLoginRoute = error.config?.url?.includes('/auth/login');
+    const isRegisterRoute = error.config?.url?.includes('/auth/register');
+
+    if (error.response?.status === 401 && !isLoginRoute && !isRegisterRoute) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }

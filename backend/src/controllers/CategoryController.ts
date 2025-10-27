@@ -16,7 +16,13 @@ export class CategoryController {
         ORDER BY c.priority DESC, c.name ASC
       `);
 
-      res.json(categories);
+      // Converter BigInt para Number
+      const categoriesWithCount = (categories as any[]).map(cat => ({
+        ...cat,
+        productCount: Number(cat.productCount)
+      }));
+
+      res.json(categoriesWithCount);
     } catch (error) {
       console.error('Erro ao listar categorias:', error);
       res.status(500).json({ error: 'Erro ao listar categorias' });

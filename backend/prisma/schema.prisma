@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -12,11 +13,11 @@ model Company {
   id          String   @id @default(uuid())
   name        String
   slug        String   @unique
-  email       String   @unique
+  email       String?  @unique
   phone       String?
   address     String?
   isActive    Boolean  @default(true)
-  plan        String   @default("basic") // basic, premium, enterprise
+  plan        String   @default("FREE") // FREE, BASIC, PRO, ENTERPRISE
   maxUsers    Int      @default(5)
   schemaName  String   @unique // Nome do schema no PostgreSQL
   createdAt   DateTime @default(now())

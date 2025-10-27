@@ -33,7 +33,7 @@ export class AuthController {
 
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
         expiresIn: JWT_EXPIRES_IN,
-      });
+      } as jwt.SignOptions);
 
       res.status(201).json({
         token,
@@ -82,7 +82,7 @@ export class AuthController {
 
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
         expiresIn: JWT_EXPIRES_IN,
-      });
+      } as jwt.SignOptions);
 
       res.json({
         token,
@@ -166,7 +166,6 @@ export class AuthController {
     try {
       const user = await prisma.user.findUnique({
         where: { id: req.user!.id },
-        include: { company: true },
         select: {
           id: true,
           email: true,

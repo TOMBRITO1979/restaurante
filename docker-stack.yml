@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - restaurante_restaurante_postgres_data:/var/lib/postgresql/data
     networks:
       - internal
     deploy:
@@ -20,7 +20,7 @@ services:
         condition: on-failure
 
   backend:
-    image: tomautomations/restaurante-backend:latest
+    image: r.chatwell.pro/restaurante-backend:latest
     environment:
       # Database
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres123}@postgres:5432/restaurante?schema=public
@@ -69,7 +69,7 @@ services:
         order: start-first
 
   frontend:
-    image: tomautomations/restaurante-frontend:latest
+    image: r.chatwell.pro/restaurante-frontend:latest
     environment:
       VITE_API_URL: https://${BACKEND_DOMAIN}
     networks:
@@ -99,4 +99,5 @@ networks:
     driver: overlay
 
 volumes:
-  postgres_data:
+  restaurante_restaurante_postgres_data:
+    external: true

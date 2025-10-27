@@ -4,7 +4,7 @@ import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { api } from '@/services/api';
-import { Product, Category, ProductVariation, ProductAddition } from '@/types';
+import { Product, Category } from '@/types';
 import { toast } from 'react-hot-toast';
 import { Plus, Edit, Trash2, Search, Image as ImageIcon } from 'lucide-react';
 import { ProductForm } from '@/components/ProductForm';

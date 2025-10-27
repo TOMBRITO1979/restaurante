@@ -84,6 +84,80 @@ export const createTenantSchema = async (schemaName: string): Promise<void> => {
       FOREIGN KEY ("productId") REFERENCES "${schemaName}"."products"("id") ON DELETE CASCADE
     )
   `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}"."tabs" (
+      "id" TEXT PRIMARY KEY,
+      "tableNumber" TEXT,
+      "deliveryType" TEXT DEFAULT 'dine_in',
+      "customerName" TEXT,
+      "customerPhone" TEXT,
+      "status" TEXT DEFAULT 'open',
+      "total" DECIMAL(10,2) DEFAULT 0,
+      "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+      "closedAt" TIMESTAMP(3),
+      "paymentMethod" TEXT,
+      "discount" DECIMAL(10,2) DEFAULT 0
+    )
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}"."orders" (
+      "id" TEXT PRIMARY KEY,
+      "tabId" TEXT,
+      "orderNumber" SERIAL,
+      "status" TEXT DEFAULT 'pending',
+      "notes" TEXT,
+      "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY ("tabId") REFERENCES "${schemaName}"."tabs"("id") ON DELETE CASCADE
+    )
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}"."order_items" (
+      "id" TEXT PRIMARY KEY,
+      "orderId" TEXT NOT NULL,
+      "productId" TEXT NOT NULL,
+      "productName" TEXT NOT NULL,
+      "quantity" INTEGER NOT NULL,
+      "unitPrice" DECIMAL(10,2) NOT NULL,
+      "totalPrice" DECIMAL(10,2) NOT NULL,
+      "notes" TEXT,
+      FOREIGN KEY ("orderId") REFERENCES "${schemaName}"."orders"("id") ON DELETE CASCADE,
+      FOREIGN KEY ("productId") REFERENCES "${schemaName}"."products"("id") ON DELETE RESTRICT
+    )
+  `);
+
+  // Tabela de vendas fechadas
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}"."sales" (
+      "id" TEXT PRIMARY KEY,
+      "saleNumber" SERIAL,
+      "tabId" TEXT,
+      "tableNumber" TEXT,
+      "deliveryType" TEXT,
+      "customerName" TEXT,
+      "customerPhone" TEXT,
+      "subtotal" DECIMAL(10,2) NOT NULL DEFAULT 0,
+      "discountRate" DECIMAL(5,2) DEFAULT 0,
+      "discountAmount" DECIMAL(10,2) DEFAULT 0,
+      "tipRate" DECIMAL(5,2) DEFAULT 0,
+      "tipAmount" DECIMAL(10,2) DEFAULT 0,
+      "taxRate" DECIMAL(5,2) DEFAULT 0,
+      "taxAmount" DECIMAL(10,2) DEFAULT 0,
+      "total" DECIMAL(10,2) NOT NULL,
+      "amountPaid" DECIMAL(10,2) DEFAULT 0,
+      "changeAmount" DECIMAL(10,2) DEFAULT 0,
+      "paymentMethod" TEXT NOT NULL,
+      "items" JSONB NOT NULL,
+      "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+      "closedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_sales_created_at" ON "${schemaName}"."sales"("createdAt")`);
+  await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_sales_payment_method" ON "${schemaName}"."sales"("paymentMethod")`);
 };
 
 export const deleteTenantSchema = async (schemaName: string): Promise<void> => {

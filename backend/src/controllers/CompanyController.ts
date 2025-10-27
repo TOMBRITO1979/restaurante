@@ -25,26 +25,40 @@ export class CompanyController {
 
   async create(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const { name, email, phone, address, plan, maxUsers, adminName, adminEmail, adminPassword } = req.body;
+      const { name, slug, plan, adminName, adminEmail, adminPassword } = req.body;
 
+      // Validar campos obrigatórios
+      if (!name || !slug) {
+        res.status(400).json({ error: 'Nome e slug são obrigatórios' });
+        return;
+      }
+
+      // Validar dados do admin
+      if (!adminName || !adminEmail || !adminPassword) {
+        res.status(400).json({ error: 'Dados do administrador são obrigatórios' });
+        return;
+      }
+
+      // Verificar se já existe empresa com mesmo slug
       const existingCompany = await prisma.company.findFirst({
-        where: {
-          OR: [{ email }, { slug: name.toLowerCase().replace(/\s+/g, '-') }],
-        },
+        where: { slug },
       });
 
       if (existingCompany) {
-        res.status(400).json({ error: 'Empresa ou email já cadastrado' });
+        res.status(400).json({ error: 'Já existe uma empresa com este slug' });
         return;
       }
 
-      const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
-      if (existingAdmin) {
-        res.status(400).json({ error: 'Email do administrador já cadastrado' });
+      // Verificar se já existe usuário com o email
+      const existingUser = await prisma.user.findFirst({
+        where: { email: adminEmail },
+      });
+
+      if (existingUser) {
+        res.status(400).json({ error: 'Já existe um usuário com este email' });
         return;
       }
 
-      const slug = name.toLowerCase().replace(/\s+/g, '-');
       const schemaName = `tenant_${uuidv4().replace(/-/g, '')}`;
 
       // Criar empresa
@@ -52,27 +66,27 @@ export class CompanyController {
         data: {
           name,
           slug,
-          email,
-          phone,
-          address,
-          plan: plan || 'basic',
-          maxUsers: maxUsers || 5,
+          plan: plan || 'FREE',
           schemaName,
+          isActive: true,
         },
       });
 
       // Criar schema do tenant
       await createTenantSchema(schemaName);
 
-      // Criar admin da empresa
+      // Hash da senha
       const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+      // Criar usuário admin
       const admin = await prisma.user.create({
         data: {
+          name: adminName,
           email: adminEmail,
           password: hashedPassword,
-          name: adminName,
           role: 'ADMIN',
           companyId: company.id,
+          isActive: true,
         },
       });
 
@@ -80,8 +94,9 @@ export class CompanyController {
         company,
         admin: {
           id: admin.id,
-          email: admin.email,
           name: admin.name,
+          email: admin.email,
+          role: admin.role,
         },
       });
     } catch (error) {
@@ -93,19 +108,17 @@ export class CompanyController {
   async update(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { name, email, phone, address, plan, maxUsers, isActive } = req.body;
+      const { name, slug, plan, isActive } = req.body;
+
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (slug !== undefined) updateData.slug = slug;
+      if (plan !== undefined) updateData.plan = plan;
+      if (isActive !== undefined) updateData.isActive = isActive;
 
       const company = await prisma.company.update({
         where: { id },
-        data: {
-          name,
-          email,
-          phone,
-          address,
-          plan,
-          maxUsers,
-          isActive,
-        },
+        data: updateData,
       });
 
       res.json(company);

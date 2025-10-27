@@ -4,6 +4,9 @@ import { CompanyController } from '@/controllers/CompanyController';
 import { UserController } from '@/controllers/UserController';
 import { CategoryController } from '@/controllers/CategoryController';
 import { ProductController } from '@/controllers/ProductController';
+import { SalesController } from '@/controllers/SalesController';
+import { TabsController } from '@/controllers/TabsController';
+import { DashboardController } from '@/controllers/DashboardController';
 import { authenticate, requireRole, checkPermission } from '@/middleware/auth';
 import { upload } from '@/middleware/upload';
 
@@ -14,6 +17,9 @@ const companyController = new CompanyController();
 const userController = new UserController();
 const categoryController = new CategoryController();
 const productController = new ProductController();
+const salesController = new SalesController();
+const tabsController = new TabsController();
+const dashboardController = new DashboardController();
 
 // Rotas públicas
 router.post('/auth/register', authController.register.bind(authController));
@@ -49,5 +55,20 @@ router.get('/products/:id', authenticate, productController.getById.bind(product
 router.post('/products', authenticate, checkPermission('products.create'), upload.single('image'), productController.create.bind(productController));
 router.put('/products/:id', authenticate, checkPermission('products.edit'), upload.single('image'), productController.update.bind(productController));
 router.delete('/products/:id', authenticate, checkPermission('products.delete'), productController.delete.bind(productController));
+
+// Rotas de vendas/histórico (Admin e User com permissão)
+router.get('/sales/stats', authenticate, salesController.getStats.bind(salesController));
+router.get('/sales', authenticate, salesController.list.bind(salesController));
+router.get('/sales/:id', authenticate, salesController.getById.bind(salesController));
+
+// Rotas de comandas/tabs (Admin e User com permissão)
+router.get('/tabs', authenticate, tabsController.listOpen.bind(tabsController));
+router.post('/tabs', authenticate, checkPermission('sales.create'), tabsController.findOrCreate.bind(tabsController));
+router.post('/tabs/:tabId/orders', authenticate, checkPermission('sales.create'), tabsController.addOrder.bind(tabsController));
+router.patch('/tabs/orders/:orderId/delivered', authenticate, checkPermission('sales.edit'), tabsController.markOrderDelivered.bind(tabsController));
+router.post('/tabs/:tabId/close', authenticate, checkPermission('sales.edit'), tabsController.closeTab.bind(tabsController));
+
+// Rotas de dashboard (Admin e User)
+router.get('/dashboard/stats', authenticate, dashboardController.getStats.bind(dashboardController));
 
 export default router;

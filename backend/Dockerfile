@@ -8,7 +8,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Instalar dependências
-RUN npm ci
+RUN npm install
 
 # Copiar código fonte
 COPY . .
@@ -22,6 +22,9 @@ RUN npm run build
 # Production stage
 FROM node:20-alpine
 
+# Instalar OpenSSL para Prisma
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 # Copiar apenas o necessário do builder
@@ -29,12 +32,6 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
-
-# Criar usuário não-root
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
-
-USER nodejs
 
 # Expor porta
 EXPOSE 3000

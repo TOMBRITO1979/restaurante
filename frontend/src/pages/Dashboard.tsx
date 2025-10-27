@@ -1,35 +1,71 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card } from '@/components/Card';
 import { useAuthStore } from '@/stores/authStore';
 import { ShoppingBag, Users, Building2, TrendingUp } from 'lucide-react';
+import { api } from '@/services/api';
+
+interface DashboardStats {
+  totalProducts: number;
+  salesToday: {
+    count: number;
+    revenue: number;
+  };
+  totalUsers: number;
+  totalCompanies: number | null;
+}
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuthStore();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const stats = [
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await api.get<DashboardStats>('/dashboard/stats');
+        setStats(response.data);
+      } catch (error) {
+        console.error('Erro ao carregar estatísticas:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
+
+  const dashboardStats = [
     {
       title: 'Total de Produtos',
-      value: '0',
+      value: loading ? '...' : (stats?.totalProducts ?? 0).toString(),
       icon: ShoppingBag,
       color: 'bg-blue-500',
     },
     {
       title: 'Usuários Ativos',
-      value: '0',
+      value: loading ? '...' : (stats?.totalUsers ?? 0).toString(),
       icon: Users,
       color: 'bg-green-500',
     },
     {
       title: 'Empresas',
-      value: '0',
+      value: loading ? '...' : (stats?.totalCompanies ?? 0).toString(),
       icon: Building2,
       color: 'bg-purple-500',
       visible: user?.role === 'SUPER_ADMIN',
     },
     {
       title: 'Vendas Hoje',
-      value: 'R$ 0,00',
+      value: loading ? '...' : formatCurrency(stats?.salesToday?.revenue ?? 0),
+      subtitle: loading ? '' : `${stats?.salesToday?.count ?? 0} vendas`,
       icon: TrendingUp,
       color: 'bg-orange-500',
     },
@@ -46,7 +82,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat) => {
+          {dashboardStats.map((stat) => {
             const Icon = stat.icon;
             return (
               <Card key={stat.title} className="flex items-center">
@@ -56,6 +92,9 @@ export const Dashboard: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-600">{stat.title}</p>
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  {'subtitle' in stat && stat.subtitle && (
+                    <p className="text-xs text-gray-500 mt-1">{stat.subtitle}</p>
+                  )}
                 </div>
               </Card>
             );

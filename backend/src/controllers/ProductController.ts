@@ -135,19 +135,19 @@ export class ProductController {
         displayName,
         categoryId,
         description || null,
-        price,
+        price ? parseFloat(price) : 0,
         imageUrl || null,
-        isAvailable ?? true,
+        isAvailable === 'true' || isAvailable === true,
         sku || null,
-        prepTime || null,
-        cost || null,
-        stock || null,
-        tags || [],
-        hasPromotion ?? false,
-        promotionDiscount || null,
+        prepTime ? parseInt(prepTime) : null,
+        cost ? parseFloat(cost) : null,
+        stock ? parseInt(stock) : null,
+        Array.isArray(tags) ? tags : (tags ? [tags] : []),
+        hasPromotion === 'true' || hasPromotion === true,
+        promotionDiscount ? parseFloat(promotionDiscount) : null,
         nutritionalInfo || null,
         allergens || null,
-        priority || 0,
+        priority ? parseInt(priority) : 0,
         availableSchedule ? JSON.stringify(availableSchedule) : null
       );
 
@@ -162,7 +162,7 @@ export class ProductController {
             productId,
             variation.name,
             variation.value,
-            variation.priceAdjust || 0
+            variation.priceAdjust ? parseFloat(variation.priceAdjust) : 0
           );
         }
       }
@@ -177,7 +177,7 @@ export class ProductController {
             uuidv4(),
             productId,
             addition.name,
-            addition.price
+            addition.price ? parseFloat(addition.price) : 0
           );
         }
       }
@@ -266,19 +266,19 @@ export class ProductController {
         displayName,
         categoryId,
         description || null,
-        price,
+        price ? parseFloat(price) : 0,
         imageUrl,
-        isAvailable ?? true,
+        isAvailable === 'true' || isAvailable === true,
         sku || null,
-        prepTime || null,
-        cost || null,
-        stock || null,
-        tags || [],
-        hasPromotion ?? false,
-        promotionDiscount || null,
+        prepTime ? parseInt(prepTime) : null,
+        cost ? parseFloat(cost) : null,
+        stock ? parseInt(stock) : null,
+        Array.isArray(tags) ? tags : (tags ? [tags] : []),
+        hasPromotion === 'true' || hasPromotion === true,
+        promotionDiscount ? parseFloat(promotionDiscount) : null,
         nutritionalInfo || null,
         allergens || null,
-        priority || 0,
+        priority ? parseInt(priority) : 0,
         availableSchedule ? JSON.stringify(availableSchedule) : null,
         id
       );
@@ -295,7 +295,7 @@ export class ProductController {
             id,
             variation.name,
             variation.value,
-            variation.priceAdjust || 0
+            variation.priceAdjust ? parseFloat(variation.priceAdjust) : 0
           );
         }
       }
@@ -311,7 +311,7 @@ export class ProductController {
             uuidv4(),
             id,
             addition.name,
-            addition.price
+            addition.price ? parseFloat(addition.price) : 0
           );
         }
       }
