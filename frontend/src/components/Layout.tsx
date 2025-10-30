@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Receipt,
   TrendingDown,
+  BarChart3,
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -36,6 +37,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { icon: ShoppingBag, label: 'Produtos', path: '/products', roles: ['ADMIN', 'USER'] },
     { icon: Tag, label: 'Categorias', path: '/categories', roles: ['ADMIN', 'USER'] },
     { icon: TrendingDown, label: 'Despesas', path: '/expenses', roles: ['ADMIN'] },
+    { icon: BarChart3, label: 'Relatórios', path: '/reports', roles: ['ADMIN'] },
     { icon: Users, label: 'Usuários', path: '/users', roles: ['ADMIN'] },
     { icon: Building2, label: 'Empresas', path: '/companies', roles: ['SUPER_ADMIN'] },
   ];
