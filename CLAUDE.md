@@ -218,6 +218,40 @@ The system uses a **tab-based ordering system** where multiple orders accumulate
 
 Products have extensive fields including variations, additions, nutritional info, promotions, and availability schedules. Image uploads go to AWS S3 via multipart/form-data.
 
+### Reports System (Admin Only)
+
+Comprehensive reporting system with multiple analytics:
+
+- **Reports Controller** (`/backend/src/controllers/ReportsController.ts`): Generate business intelligence reports
+- **Frontend**: `/frontend/src/pages/Reports.tsx` (Admin only)
+
+**Available Reports**:
+1. **Profit Report**: Revenue vs Expenses with profit margin calculation
+2. **Revenue Report**: Total revenue, breakdown by payment method and delivery type, taxes, tips, discounts
+3. **Delivery Time Report**: Average delivery time, distribution by time ranges (0-15min, 15-30min, etc.)
+4. **Consolidated Report**: All reports in a single API call
+
+**API Endpoints**:
+- `GET /api/reports/profit` - Profit analysis
+- `GET /api/reports/revenue` - Revenue breakdown
+- `GET /api/reports/delivery-time` - Delivery performance metrics
+- `GET /api/reports/consolidated` - All reports combined
+
+**Query Parameters** (all endpoints):
+- `startDate`: Start date for period (defaults to first day of current month)
+- `endDate`: End date for period (defaults to today)
+
+**Key Metrics**:
+- Total revenue and expenses
+- Profit margin percentage
+- Revenue by payment method (cash, credit, debit, PIX, transfer)
+- Revenue by delivery type (dine-in, delivery, takeout)
+- Average delivery time in minutes
+- Min/max delivery times
+- Delivery time distribution
+- Total taxes and tips collected
+- Total discounts applied
+
 ### Expense Management System (Admin Only)
 
 A comprehensive expense tracking system with recurring expense automation:
@@ -429,6 +463,7 @@ docker service update --image r.chatwell.pro/restaurante-frontend:latest --force
 - User management
 - **Orders/Tabs management** (comandas) - List and manage open tabs
 - **Expense Management** (Admin only) - Track expenses with recurring automation
+- **Reports & Analytics** (Admin only) - Comprehensive business intelligence reports
 
 ### ⚠️ Known Issues
 

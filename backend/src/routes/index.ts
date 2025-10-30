@@ -9,6 +9,7 @@ import { TabsController } from '@/controllers/TabsController';
 import { DashboardController } from '@/controllers/DashboardController';
 import { ExpenseCategoriesController } from '@/controllers/ExpenseCategoriesController';
 import { ExpensesController } from '@/controllers/ExpensesController';
+import { ReportsController } from '@/controllers/ReportsController';
 import { authenticate, requireRole, checkPermission } from '@/middleware/auth';
 import { upload } from '@/middleware/upload';
 
@@ -24,6 +25,7 @@ const tabsController = new TabsController();
 const dashboardController = new DashboardController();
 const expenseCategoriesController = new ExpenseCategoriesController();
 const expensesController = new ExpensesController();
+const reportsController = new ReportsController();
 
 // Rotas públicas
 router.post('/auth/register', authController.register.bind(authController));
@@ -88,5 +90,11 @@ router.get('/expenses/:id', authenticate, requireRole('ADMIN'), expensesControll
 router.post('/expenses', authenticate, requireRole('ADMIN'), expensesController.create.bind(expensesController));
 router.put('/expenses/:id', authenticate, requireRole('ADMIN'), expensesController.update.bind(expensesController));
 router.delete('/expenses/:id', authenticate, requireRole('ADMIN'), expensesController.delete.bind(expensesController));
+
+// Rotas de relatórios (Admin apenas)
+router.get('/reports/profit', authenticate, requireRole('ADMIN'), reportsController.getProfitReport.bind(reportsController));
+router.get('/reports/revenue', authenticate, requireRole('ADMIN'), reportsController.getRevenueReport.bind(reportsController));
+router.get('/reports/delivery-time', authenticate, requireRole('ADMIN'), reportsController.getDeliveryTimeReport.bind(reportsController));
+router.get('/reports/consolidated', authenticate, requireRole('ADMIN'), reportsController.getConsolidatedReport.bind(reportsController));
 
 export default router;
