@@ -259,6 +259,14 @@ Uses **Zustand** for global state. Main store:
 
 - `/frontend/src/stores/authStore.ts`: Authentication state, login/logout, user info
 
+## Frontend Architecture
+
+- **Routing**: React Router v6 in `/frontend/src/App.tsx` with `PrivateRoute` wrapper for authentication
+- **Styling**: Inline TailwindCSS classes (no separate CSS files)
+- **Forms**: React Hook Form + Zod validation
+- **Notifications**: react-hot-toast for user feedback
+- **Icons**: Lucide React icon library
+
 ## API Client Configuration
 
 Frontend uses Axios with base URL from environment:
@@ -268,7 +276,7 @@ Frontend uses Axios with base URL from environment:
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 ```
 
-Token automatically attached via interceptor.
+Token automatically attached via interceptor. On 401 errors (except for `/auth/login` and `/auth/register`), user is redirected to login page.
 
 ## Common Debugging Tasks
 
@@ -337,7 +345,7 @@ Test credentials:
 - Email: `wrbs.alt@gmail.com` | Role: ADMIN
 - Email: `admin@chatwell.pro` | Role: SUPER_ADMIN
 
-## Recent Changes (Oct 2025)
+## Recent Changes (Oct 2024)
 
 ### Payment System - Discount/Tip as Percentages
 
@@ -414,7 +422,7 @@ docker build --no-cache --build-arg VITE_API_URL=https://rapi.chatwell.pro \
 docker service update --image r.chatwell.pro/restaurante-frontend:latest --force restaurante_frontend
 ```
 
-## Current Status (Oct 30, 2025)
+## Current Status (Oct 30, 2024)
 
 ### ✅ Working Features
 - User authentication and login
