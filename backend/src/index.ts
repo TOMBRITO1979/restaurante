@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import routes from '@/routes';
 import { prisma, disconnectAll } from '@/utils/database';
+import { startRecurringExpensesCron } from '@/jobs/recurringExpensesCron';
 
 dotenv.config();
 
@@ -56,6 +57,9 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 const server = app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
+
+  // Iniciar cron jobs
+  startRecurringExpensesCron();
 });
 
 // Graceful shutdown

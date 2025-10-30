@@ -7,6 +7,8 @@ import { ProductController } from '@/controllers/ProductController';
 import { SalesController } from '@/controllers/SalesController';
 import { TabsController } from '@/controllers/TabsController';
 import { DashboardController } from '@/controllers/DashboardController';
+import { ExpenseCategoriesController } from '@/controllers/ExpenseCategoriesController';
+import { ExpensesController } from '@/controllers/ExpensesController';
 import { authenticate, requireRole, checkPermission } from '@/middleware/auth';
 import { upload } from '@/middleware/upload';
 
@@ -20,6 +22,8 @@ const productController = new ProductController();
 const salesController = new SalesController();
 const tabsController = new TabsController();
 const dashboardController = new DashboardController();
+const expenseCategoriesController = new ExpenseCategoriesController();
+const expensesController = new ExpensesController();
 
 // Rotas públicas
 router.post('/auth/register', authController.register.bind(authController));
@@ -70,5 +74,19 @@ router.post('/tabs/:tabId/close', authenticate, checkPermission('sales.edit'), t
 
 // Rotas de dashboard (Admin e User)
 router.get('/dashboard/stats', authenticate, dashboardController.getStats.bind(dashboardController));
+
+// Rotas de categorias de despesas (Admin apenas)
+router.get('/expense-categories', authenticate, requireRole('ADMIN'), expenseCategoriesController.list.bind(expenseCategoriesController));
+router.post('/expense-categories', authenticate, requireRole('ADMIN'), expenseCategoriesController.create.bind(expenseCategoriesController));
+router.put('/expense-categories/:id', authenticate, requireRole('ADMIN'), expenseCategoriesController.update.bind(expenseCategoriesController));
+router.delete('/expense-categories/:id', authenticate, requireRole('ADMIN'), expenseCategoriesController.delete.bind(expenseCategoriesController));
+
+// Rotas de despesas (Admin apenas)
+router.get('/expenses/stats', authenticate, requireRole('ADMIN'), expensesController.getStats.bind(expensesController));
+router.get('/expenses', authenticate, requireRole('ADMIN'), expensesController.list.bind(expensesController));
+router.get('/expenses/:id', authenticate, requireRole('ADMIN'), expensesController.getById.bind(expensesController));
+router.post('/expenses', authenticate, requireRole('ADMIN'), expensesController.create.bind(expensesController));
+router.put('/expenses/:id', authenticate, requireRole('ADMIN'), expensesController.update.bind(expensesController));
+router.delete('/expenses/:id', authenticate, requireRole('ADMIN'), expensesController.delete.bind(expensesController));
 
 export default router;

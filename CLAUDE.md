@@ -218,6 +218,41 @@ The system uses a **tab-based ordering system** where multiple orders accumulate
 
 Products have extensive fields including variations, additions, nutritional info, promotions, and availability schedules. Image uploads go to AWS S3 via multipart/form-data.
 
+### Expense Management System (Admin Only)
+
+A comprehensive expense tracking system with recurring expense automation:
+
+- **Expense Categories Controller** (`/backend/src/controllers/ExpenseCategoriesController.ts`): CRUD for expense categories
+- **Expenses Controller** (`/backend/src/controllers/ExpensesController.ts`): Full expense management with statistics
+- **Recurring Expenses Service** (`/backend/src/services/recurringExpensesService.ts`): Automated monthly expense creation
+- **Cron Job** (`/backend/src/jobs/recurringExpensesCron.ts`): Runs daily at 6:00 AM to process recurring expenses
+- **Frontend**: `/frontend/src/pages/Expenses.tsx` (Admin only)
+
+**Database Tables** (in tenant schema):
+- `expense_categories`: Categories with customizable colors (Insumos, Contas, Salários, etc.)
+- `expenses`: Full expense tracking with recurring support
+
+**Key Features**:
+- Create expense categories with custom colors
+- Track expenses with supplier, amount, payment method, notes
+- Mark expenses as recurring (monthly, specific day of month)
+- Automated expense generation via cron job
+- Each generated expense is independent (deleting doesn't affect history)
+- Statistics: total by category, by payment method, time-based filtering
+- Permissions: Admin-only access via `requireRole('ADMIN')`
+
+**API Endpoints**:
+- `GET/POST/PUT/DELETE /api/expense-categories`
+- `GET/POST/PUT/DELETE /api/expenses`
+- `GET /api/expenses/stats` - Get expense statistics
+
+**Recurring Expense Flow**:
+1. Admin creates expense marked as "recurring" with day of month (1-31)
+2. Cron job runs daily at 6:00 AM
+3. On specified day, creates new expense from template
+4. New expense has `recurringTemplateId` referencing original
+5. Each expense is independent - can be edited/deleted without affecting others
+
 ## State Management (Frontend)
 
 Uses **Zustand** for global state. Main store:
@@ -393,6 +428,7 @@ docker service update --image r.chatwell.pro/restaurante-frontend:latest --force
 - Dashboard (user-specific views)
 - User management
 - **Orders/Tabs management** (comandas) - List and manage open tabs
+- **Expense Management** (Admin only) - Track expenses with recurring automation
 
 ### ⚠️ Known Issues
 

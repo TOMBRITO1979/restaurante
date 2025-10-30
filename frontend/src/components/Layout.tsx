@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   ClipboardList,
   Receipt,
+  TrendingDown,
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -34,6 +35,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { icon: Receipt, label: 'Histórico de Vendas', path: '/sales-history', roles: ['ADMIN', 'USER'] },
     { icon: ShoppingBag, label: 'Produtos', path: '/products', roles: ['ADMIN', 'USER'] },
     { icon: Tag, label: 'Categorias', path: '/categories', roles: ['ADMIN', 'USER'] },
+    { icon: TrendingDown, label: 'Despesas', path: '/expenses', roles: ['ADMIN'] },
     { icon: Users, label: 'Usuários', path: '/users', roles: ['ADMIN'] },
     { icon: Building2, label: 'Empresas', path: '/companies', roles: ['SUPER_ADMIN'] },
   ];

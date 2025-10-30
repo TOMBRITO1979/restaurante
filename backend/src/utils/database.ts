@@ -158,6 +158,43 @@ export const createTenantSchema = async (schemaName: string): Promise<void> => {
 
   await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_sales_created_at" ON "${schemaName}"."sales"("createdAt")`);
   await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_sales_payment_method" ON "${schemaName}"."sales"("paymentMethod")`);
+
+  // Tabela de categorias de despesas
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}"."expense_categories" (
+      "id" TEXT PRIMARY KEY,
+      "name" TEXT NOT NULL,
+      "description" TEXT,
+      "color" TEXT DEFAULT '#6B7280',
+      "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Tabela de despesas
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}"."expenses" (
+      "id" TEXT PRIMARY KEY,
+      "categoryId" TEXT NOT NULL,
+      "description" TEXT NOT NULL,
+      "amount" DECIMAL(10,2) NOT NULL,
+      "date" TIMESTAMP(3) NOT NULL,
+      "paymentMethod" TEXT NOT NULL,
+      "supplier" TEXT,
+      "isRecurring" BOOLEAN DEFAULT false,
+      "recurringDayOfMonth" INTEGER,
+      "recurringTemplateId" TEXT,
+      "notes" TEXT,
+      "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY ("categoryId") REFERENCES "${schemaName}"."expense_categories"("id") ON DELETE RESTRICT,
+      FOREIGN KEY ("recurringTemplateId") REFERENCES "${schemaName}"."expenses"("id") ON DELETE SET NULL
+    )
+  `);
+
+  await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_expenses_date" ON "${schemaName}"."expenses"("date")`);
+  await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_expenses_category" ON "${schemaName}"."expenses"("categoryId")`);
+  await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_expenses_recurring" ON "${schemaName}"."expenses"("isRecurring")`);
 };
 
 export const deleteTenantSchema = async (schemaName: string): Promise<void> => {

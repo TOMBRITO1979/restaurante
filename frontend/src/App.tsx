@@ -13,6 +13,7 @@ import { SalesHistory } from '@/pages/SalesHistory';
 import { Orders } from '@/pages/Orders';
 import { Users } from '@/pages/Users';
 import { Companies } from '@/pages/Companies';
+import { Expenses } from '@/pages/Expenses';
 import { Loading } from '@/components/Loading';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -109,6 +110,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Companies />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/expenses"
+            element={
+              <PrivateRoute>
+                <Expenses />
               </PrivateRoute>
             }
           />
