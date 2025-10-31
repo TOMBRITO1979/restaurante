@@ -40,3 +40,9 @@ coverage/
 # Stack files with secrets
 restaurante-stack-final.yml
 restaurante-stack.yaml
+
+# Backups
+backups/
+*.tar.gz
+*.tar
+*.zip
