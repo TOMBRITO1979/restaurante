@@ -413,6 +413,11 @@ export const Expenses: React.FC = () => {
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
+              {startDate && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {new Date(startDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -424,6 +429,11 @@ export const Expenses: React.FC = () => {
                 onChange={(e) => setEndDate(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
+              {endDate && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {new Date(endDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
