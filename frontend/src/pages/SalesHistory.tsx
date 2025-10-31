@@ -3,7 +3,7 @@ import { Layout } from '@/components/Layout';
 import { Card } from '@/components/Card';
 import { api } from '@/services/api';
 import { toast } from 'react-hot-toast';
-import { Receipt, Calendar, CreditCard, User, Phone, Hash } from 'lucide-react';
+import { Receipt, Calendar, CreditCard, User, Phone, Hash, Filter, FileText, Download, DollarSign, TrendingUp, ShoppingCart } from 'lucide-react';
 
 interface OrderItem {
   id: string;
@@ -47,6 +47,12 @@ interface Sale {
   closedAt: string;
 }
 
+interface SalesStats {
+  totalSales: number;
+  totalRevenue: number;
+  averageTicket: number;
+}
+
 export const SalesHistory: React.FC = () => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,21 +60,46 @@ export const SalesHistory: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Filtros e estatísticas
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [stats, setStats] = useState<SalesStats | null>(null);
+
   useEffect(() => {
     fetchSales();
-  }, [currentPage]);
+    fetchStats();
+  }, [currentPage, startDate, endDate]);
 
   const fetchSales = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/sales?page=${currentPage}&limit=20`);
+      const params = new URLSearchParams();
+      params.append('page', currentPage.toString());
+      params.append('limit', '20');
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const response = await api.get(`/sales?${params.toString()}`);
       setSales(response.data.sales);
       setTotalPages(response.data.pagination.totalPages);
     } catch (error) {
-      console.error('Erro ao carregar hist�rico de vendas:', error);
-      toast.error('Erro ao carregar hist�rico de vendas');
+      console.error('Erro ao carregar histórico de vendas:', error);
+      toast.error('Erro ao carregar histórico de vendas');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const response = await api.get(`/sales/stats?${params.toString()}`);
+      setStats(response.data.overall);
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas:', error);
     }
   };
 
@@ -91,7 +122,7 @@ export const SalesHistory: React.FC = () => {
 
   const getDeliveryTypeLabel = (type: string) => {
     const types: Record<string, string> = {
-      dine_in: 'Mesa/Sal�o',
+      dine_in: 'Mesa/Salão',
       delivery: 'Delivery',
       takeout: 'Para Viagem',
     };
@@ -101,11 +132,61 @@ export const SalesHistory: React.FC = () => {
   const getPaymentMethodLabel = (method: string) => {
     const methods: Record<string, string> = {
       cash: 'Dinheiro',
-      credit_card: 'Cart�o de Cr�dito',
-      debit_card: 'Cart�o de D�bito',
+      credit_card: 'Cartão de Crédito',
+      debit_card: 'Cartão de Débito',
       pix: 'PIX',
     };
     return methods[method] || method;
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const response = await api.get(`/sales/export/pdf?${params.toString()}`, {
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `vendas_${Date.now()}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success('PDF exportado com sucesso!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao exportar PDF');
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const response = await api.get(`/sales/export/csv?${params.toString()}`, {
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `vendas_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success('CSV exportado com sucesso!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao exportar CSV');
+    }
   };
 
   return (
@@ -113,10 +194,115 @@ export const SalesHistory: React.FC = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Hist�rico de Vendas</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Histórico de Vendas</h1>
             <p className="text-gray-600 mt-1">
               Visualize todas as vendas finalizadas
             </p>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total de Vendas</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                    {stats.totalSales}
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <ShoppingCart className="text-blue-600" size={24} />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Receita Total</p>
+                  <p className="text-2xl font-bold text-emerald-600 mt-1">
+                    {formatCurrency(parseFloat(stats.totalRevenue.toString()))}
+                  </p>
+                </div>
+                <div className="p-3 bg-emerald-100 rounded-full">
+                  <TrendingUp className="text-emerald-600" size={24} />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Ticket Médio</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                    {formatCurrency(parseFloat(stats.averageTicket.toString()))}
+                  </p>
+                </div>
+                <div className="p-3 bg-purple-100 rounded-full">
+                  <DollarSign className="text-purple-600" size={24} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Filters */}
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Filter size={20} className="text-gray-600" />
+              <h3 className="font-semibold text-gray-900">Filtros</h3>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleExportPDF}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm"
+                title="Exportar para PDF"
+              >
+                <FileText size={18} />
+                PDF
+              </button>
+              <button
+                onClick={handleExportCSV}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm"
+                title="Exportar para CSV"
+              >
+                <Download size={18} />
+                CSV
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Data Inicial
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Data Final
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
         </div>
 

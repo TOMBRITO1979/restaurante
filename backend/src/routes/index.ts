@@ -64,6 +64,8 @@ router.delete('/products/:id', authenticate, checkPermission('products.delete'),
 
 // Rotas de vendas/histórico (Admin e User com permissão)
 router.get('/sales/stats', authenticate, salesController.getStats.bind(salesController));
+router.get('/sales/export/pdf', authenticate, salesController.exportPDF.bind(salesController));
+router.get('/sales/export/csv', authenticate, salesController.exportCSV.bind(salesController));
 router.get('/sales', authenticate, salesController.list.bind(salesController));
 router.get('/sales/:id', authenticate, salesController.getById.bind(salesController));
 
