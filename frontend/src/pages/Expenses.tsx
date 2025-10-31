@@ -8,6 +8,8 @@ import {
   DollarSign,
   TrendingDown,
   RefreshCw,
+  FileText,
+  Download,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '@/services/api';
@@ -246,6 +248,60 @@ export const Expenses: React.FC = () => {
     check: 'Cheque',
   };
 
+  const handleExportPDF = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      if (filterCategory) params.append('categoryId', filterCategory);
+      if (filterSupplier) params.append('supplier', filterSupplier);
+
+      const response = await api.get(`/expenses/export/pdf?${params.toString()}`, {
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `despesas_${Date.now()}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success('PDF exportado com sucesso!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao exportar PDF');
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      if (filterCategory) params.append('categoryId', filterCategory);
+      if (filterSupplier) params.append('supplier', filterSupplier);
+
+      const response = await api.get(`/expenses/export/csv?${params.toString()}`, {
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `despesas_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success('CSV exportado com sucesso!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao exportar CSV');
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -322,9 +378,29 @@ export const Expenses: React.FC = () => {
 
         {/* Filters */}
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center gap-2 mb-3">
-            <Filter size={20} className="text-gray-600" />
-            <h3 className="font-semibold text-gray-900">Filtros</h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Filter size={20} className="text-gray-600" />
+              <h3 className="font-semibold text-gray-900">Filtros</h3>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleExportPDF}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm"
+                title="Exportar para PDF"
+              >
+                <FileText size={18} />
+                PDF
+              </button>
+              <button
+                onClick={handleExportCSV}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm"
+                title="Exportar para CSV"
+              >
+                <Download size={18} />
+                CSV
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>

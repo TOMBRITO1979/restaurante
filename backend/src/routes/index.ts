@@ -85,6 +85,8 @@ router.delete('/expense-categories/:id', authenticate, requireRole('ADMIN'), exp
 
 // Rotas de despesas (Admin apenas)
 router.get('/expenses/stats', authenticate, requireRole('ADMIN'), expensesController.getStats.bind(expensesController));
+router.get('/expenses/export/pdf', authenticate, requireRole('ADMIN'), expensesController.exportPDF.bind(expensesController));
+router.get('/expenses/export/csv', authenticate, requireRole('ADMIN'), expensesController.exportCSV.bind(expensesController));
 router.get('/expenses', authenticate, requireRole('ADMIN'), expensesController.list.bind(expensesController));
 router.get('/expenses/:id', authenticate, requireRole('ADMIN'), expensesController.getById.bind(expensesController));
 router.post('/expenses', authenticate, requireRole('ADMIN'), expensesController.create.bind(expensesController));
