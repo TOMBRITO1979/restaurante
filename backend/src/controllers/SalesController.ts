@@ -16,13 +16,16 @@ export class SalesController {
       const params: any[] = [];
 
       if (startDate) {
-        whereConditions.push(`"createdAt" >= $${params.length + 1}`);
+        whereConditions.push(`"closedAt" >= $${params.length + 1}::timestamp`);
         params.push(startDate);
       }
 
       if (endDate) {
-        whereConditions.push(`"createdAt" <= $${params.length + 1}`);
-        params.push(endDate);
+        // Add 1 day to include the entire end date
+        const endDateTime = new Date(endDate as string);
+        endDateTime.setDate(endDateTime.getDate() + 1);
+        whereConditions.push(`"closedAt" < $${params.length + 1}::timestamp`);
+        params.push(endDateTime.toISOString());
       }
 
       if (paymentMethod) {
@@ -156,13 +159,16 @@ export class SalesController {
       const params: any[] = [];
 
       if (startDate) {
-        whereConditions.push(`"closedAt" >= $${params.length + 1}`);
+        whereConditions.push(`"closedAt" >= $${params.length + 1}::timestamp`);
         params.push(startDate);
       }
 
       if (endDate) {
-        whereConditions.push(`"closedAt" <= $${params.length + 1}`);
-        params.push(endDate);
+        // Add 1 day to include the entire end date
+        const endDateTime = new Date(endDate as string);
+        endDateTime.setDate(endDateTime.getDate() + 1);
+        whereConditions.push(`"closedAt" < $${params.length + 1}::timestamp`);
+        params.push(endDateTime.toISOString());
       }
 
       const whereClause = whereConditions.length > 0
@@ -174,7 +180,7 @@ export class SalesController {
           COUNT(*)::int as "totalSales",
           COALESCE(SUM(total), 0)::decimal as "totalRevenue",
           COALESCE(AVG(total), 0)::decimal as "averageTicket",
-          COALESCE(SUM(discount), 0)::decimal as "totalDiscounts"
+          COALESCE(SUM("discountAmount"), 0)::decimal as "totalDiscounts"
         FROM "${tenantSchema}"."sales"
         ${whereClause}
       `, ...params) as any[];
@@ -213,13 +219,16 @@ export class SalesController {
       const params: any[] = [];
 
       if (startDate) {
-        whereConditions.push(`"closedAt" >= $${params.length + 1}`);
+        whereConditions.push(`"closedAt" >= $${params.length + 1}::timestamp`);
         params.push(startDate);
       }
 
       if (endDate) {
-        whereConditions.push(`"closedAt" <= $${params.length + 1}`);
-        params.push(endDate);
+        // Add 1 day to include the entire end date
+        const endDateTime = new Date(endDate as string);
+        endDateTime.setDate(endDateTime.getDate() + 1);
+        whereConditions.push(`"closedAt" < $${params.length + 1}::timestamp`);
+        params.push(endDateTime.toISOString());
       }
 
       if (paymentMethod) {
@@ -403,13 +412,16 @@ export class SalesController {
       const params: any[] = [];
 
       if (startDate) {
-        whereConditions.push(`"closedAt" >= $${params.length + 1}`);
+        whereConditions.push(`"closedAt" >= $${params.length + 1}::timestamp`);
         params.push(startDate);
       }
 
       if (endDate) {
-        whereConditions.push(`"closedAt" <= $${params.length + 1}`);
-        params.push(endDate);
+        // Add 1 day to include the entire end date
+        const endDateTime = new Date(endDate as string);
+        endDateTime.setDate(endDateTime.getDate() + 1);
+        whereConditions.push(`"closedAt" < $${params.length + 1}::timestamp`);
+        params.push(endDateTime.toISOString());
       }
 
       if (paymentMethod) {
