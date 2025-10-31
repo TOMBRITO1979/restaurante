@@ -456,7 +456,97 @@ docker build --no-cache --build-arg VITE_API_URL=https://rapi.chatwell.pro \
 docker service update --image r.chatwell.pro/restaurante-frontend:latest --force restaurante_frontend
 ```
 
-## Current Status (Oct 30, 2024)
+## Recent Changes (Oct 31, 2025)
+
+### Export Features - PDF and CSV
+
+Added comprehensive export functionality to both Expenses and Sales History pages.
+
+#### Expenses Export (Admin Only)
+**Backend:** `/backend/src/controllers/ExpensesController.ts`
+- `exportPDF()`: Generates professional PDF report with summary and detailed expense table
+- `exportCSV()`: Exports all expense data with UTF-8 BOM for Excel compatibility
+- Routes: `GET /api/expenses/export/pdf` and `GET /api/expenses/export/csv`
+- Respects date range and category filters
+
+**Frontend:** `/frontend/src/pages/Expenses.tsx`
+- PDF and CSV export buttons in filters section
+- Downloads use Blob API for direct file download
+- Toast notifications for user feedback
+
+#### Sales History Export
+**Backend:** `/backend/src/controllers/SalesController.ts`
+- `exportPDF()`: Professional sales report with statistics (total sales, revenue, average ticket)
+- `exportCSV()`: Complete sales data export with all fields
+- Routes: `GET /api/sales/export/pdf` and `GET /api/sales/export/csv`
+- Respects date range filters
+
+**Frontend:** `/frontend/src/pages/SalesHistory.tsx`
+- Statistics cards showing real-time metrics
+- Date range filters with pt-BR format display helper
+- PDF and CSV export buttons
+- Filters apply to both list view and exports
+
+**PDF Features:**
+- Professional formatting with company branding
+- Summary statistics at top
+- Detailed tables with pagination
+- Period information and generation timestamp
+- Portuguese labels and currency formatting
+
+**CSV Features:**
+- UTF-8 with BOM for Excel compatibility
+- All data fields included
+- Proper escaping for special characters
+- Portuguese column headers
+- Comma-separated format
+
+### Date Format Improvements
+
+**Problem:** HTML5 date inputs showed different formats based on browser locale (MM/DD/YYYY vs DD/MM/YYYY), causing confusion.
+
+**Solution:** Added visual helper text below date inputs showing selected date in Brazilian format (DD/MM/AAAA).
+
+**Changes:**
+- `/frontend/src/pages/SalesHistory.tsx`: Helper text for date inputs
+- `/frontend/src/pages/Expenses.tsx`: Helper text for date inputs
+- All date displays verified to use `toLocaleDateString('pt-BR')` or `Intl.DateTimeFormat('pt-BR')`
+
+**Example:**
+```
+[Date Input Field]
+31/10/2025  ← Visual confirmation in DD/MM/AAAA format
+```
+
+### SQL Query Fixes
+
+**Problem:** Sales History was failing with error: "operator does not exist: timestamp without time zone >= text"
+
+**Root Cause:** Date parameters were being passed as strings without type casting in PostgreSQL queries.
+
+**Fix:** Added explicit type casting to all date comparisons:
+```typescript
+// Before
+whereConditions.push(`"closedAt" >= $${params.length + 1}`);
+
+// After
+whereConditions.push(`"closedAt" >= $${params.length + 1}::timestamp`);
+```
+
+**Changes in `/backend/src/controllers/SalesController.ts`:**
+- Fixed date casting in `list()`, `getStats()`, `exportPDF()`, `exportCSV()`
+- Changed from `createdAt` to `closedAt` for consistency
+- Added end date handling to include entire day (+1 day with `<` operator)
+- Fixed column name in stats query: `discount` → `discountAmount`
+
+### Dependencies Added
+
+**Backend:**
+- `pdfkit`: PDF generation library
+- `@types/pdfkit`: TypeScript definitions
+- `csv-writer`: CSV file generation
+
+## Current Status (Oct 31, 2025)
 
 ### ✅ Working Features
 - User authentication and login
@@ -465,13 +555,20 @@ docker service update --image r.chatwell.pro/restaurante-frontend:latest --force
 - Product management
 - Category management
 - Sales/PDV system with percentage-based discounts/tips
-- Sales history with detailed breakdown
+- Sales history with detailed breakdown and filters
 - Payment processing (cash, credit, debit, PIX)
 - Dashboard (user-specific views)
 - User management
 - **Orders/Tabs management** (comandas) - List and manage open tabs
 - **Expense Management** (Admin only) - Track expenses with recurring automation
+<<<<<<< HEAD
 - **Reports & Analytics** (Admin only) - Comprehensive business intelligence reports
+=======
+- **Expense Export** (Admin only) - PDF and CSV export with filters
+- **Sales History Export** - PDF and CSV export with date filters
+- **Sales Statistics** - Real-time stats with total sales, revenue, and average ticket
+- **Date Filters** - Filter expenses and sales by date range with pt-BR format display
+>>>>>>> 4439bc8 (docs: Update CLAUDE.md with export features and recent improvements)
 
 ### ⚠️ Known Issues
 
