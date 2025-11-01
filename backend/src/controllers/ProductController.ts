@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthRequest } from '@/types';
 import { getTenantClient } from '@/utils/database';
-import { uploadFile, deleteFile } from '@/utils/s3';
+import { uploadFile, deleteFile } from '@/utils/storage';
 
 export class ProductController {
   async list(req: AuthRequest, res: Response): Promise<void> {

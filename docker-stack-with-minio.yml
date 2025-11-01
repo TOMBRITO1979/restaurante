@@ -19,6 +19,37 @@ services:
       restart_policy:
         condition: on-failure
 
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-minioadmin}
+    volumes:
+      - restaurante_minio_data:/data
+    networks:
+      - internal
+      - network_public
+    deploy:
+      replicas: 1
+      labels:
+        # MinIO API
+        - traefik.enable=true
+        - traefik.docker.network=network_public
+        - traefik.http.routers.restaurante-minio-api.rule=Host(`minio-api.${BACKEND_DOMAIN}`)
+        - traefik.http.routers.restaurante-minio-api.entrypoints=websecure
+        - traefik.http.routers.restaurante-minio-api.tls.certresolver=letsencrypt
+        - traefik.http.routers.restaurante-minio-api.service=restaurante-minio-api
+        - traefik.http.services.restaurante-minio-api.loadbalancer.server.port=9000
+        # MinIO Console
+        - traefik.http.routers.restaurante-minio-console.rule=Host(`minio.${BACKEND_DOMAIN}`)
+        - traefik.http.routers.restaurante-minio-console.entrypoints=websecure
+        - traefik.http.routers.restaurante-minio-console.tls.certresolver=letsencrypt
+        - traefik.http.routers.restaurante-minio-console.service=restaurante-minio-console
+        - traefik.http.services.restaurante-minio-console.loadbalancer.server.port=9001
+      restart_policy:
+        condition: on-failure
+
   backend:
     image: r.chatwell.pro/restaurante-backend:latest
     environment:
@@ -29,26 +60,16 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: 7d
 
-      # Storage Provider (local, minio, or s3)
-      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      # Storage Provider (minio for this stack)
+      STORAGE_PROVIDER: minio
 
-      # Local Storage
-      LOCAL_STORAGE_PATH: ${LOCAL_STORAGE_PATH:-./uploads}
-      LOCAL_STORAGE_BASE_URL: ${LOCAL_STORAGE_BASE_URL:-https://${BACKEND_DOMAIN}/uploads}
-
-      # AWS S3 / MinIO
-      AWS_REGION: ${AWS_REGION:-us-east-1}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
-
-      # MinIO specific
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_REGION: ${S3_REGION:-us-east-1}
-      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
-      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
-      S3_BUCKET: ${S3_BUCKET}
-      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-false}
+      # MinIO Configuration
+      S3_ENDPOINT: https://minio-api.${BACKEND_DOMAIN}
+      S3_REGION: us-east-1
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-minioadmin}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-minioadmin}
+      S3_BUCKET: ${S3_BUCKET:-restaurante-uploads}
+      S3_FORCE_PATH_STYLE: true
 
       # SMTP
       SMTP_HOST: ${SMTP_HOST}
@@ -62,13 +83,12 @@ services:
       NODE_ENV: production
       PORT: 3000
       FRONTEND_URL: ${FRONTEND_URL}
-    volumes:
-      - restaurante_uploads:/app/uploads
     networks:
       - network_public
       - internal
     depends_on:
       - postgres
+      - minio
     deploy:
       replicas: 1
       labels:
@@ -118,5 +138,5 @@ networks:
 volumes:
   restaurante_restaurante_postgres_data:
     external: true
-  restaurante_uploads:
+  restaurante_minio_data:
     driver: local

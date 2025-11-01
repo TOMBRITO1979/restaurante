@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import path from 'path';
 import routes from '@/routes';
 import { prisma, disconnectAll } from '@/utils/database';
 import { startRecurringExpensesCron } from '@/jobs/recurringExpensesCron';
@@ -31,6 +32,13 @@ const limiter = rateLimit({
   max: 100, // limite de 100 requisições por IP
 });
 app.use(limiter);
+
+// Serve static files for local storage
+if (process.env.STORAGE_PROVIDER === 'local') {
+  const uploadsPath = process.env.LOCAL_STORAGE_PATH || './uploads';
+  app.use('/uploads', express.static(path.resolve(uploadsPath)));
+  console.log(`Serving static files from: ${uploadsPath}`);
+}
 
 // Rotas
 app.use('/api', routes);
