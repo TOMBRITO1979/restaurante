@@ -195,6 +195,32 @@ export const createTenantSchema = async (schemaName: string): Promise<void> => {
   await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_expenses_date" ON "${schemaName}"."expenses"("date")`);
   await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_expenses_category" ON "${schemaName}"."expenses"("categoryId")`);
   await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_expenses_recurring" ON "${schemaName}"."expenses"("isRecurring")`);
+
+  // Tabela de configurações da empresa
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "${schemaName}"."company_settings" (
+      "id" TEXT PRIMARY KEY DEFAULT 'default',
+      "companyName" TEXT NOT NULL DEFAULT 'Minha Empresa',
+      "address" TEXT,
+      "city" TEXT,
+      "state" TEXT,
+      "zipCode" TEXT,
+      "phone" TEXT,
+      "email" TEXT,
+      "website" TEXT,
+      "cnpj" TEXT,
+      "logo" TEXT,
+      "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Inserir configuração padrão se não existir
+  await prisma.$executeRawUnsafe(`
+    INSERT INTO "${schemaName}"."company_settings" ("id", "companyName")
+    VALUES ('default', 'Minha Empresa')
+    ON CONFLICT ("id") DO NOTHING
+  `);
 };
 
 export const deleteTenantSchema = async (schemaName: string): Promise<void> => {

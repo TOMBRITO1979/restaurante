@@ -14,6 +14,7 @@ import {
   Receipt,
   TrendingDown,
   BarChart3,
+  Settings as SettingsIcon,
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -39,6 +40,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { icon: TrendingDown, label: 'Despesas', path: '/expenses', roles: ['ADMIN'] },
     { icon: BarChart3, label: 'Relatórios', path: '/reports', roles: ['ADMIN'] },
     { icon: Users, label: 'Usuários', path: '/users', roles: ['ADMIN'] },
+    { icon: SettingsIcon, label: 'Configurações', path: '/settings', roles: ['ADMIN'] },
     { icon: Building2, label: 'Empresas', path: '/companies', roles: ['SUPER_ADMIN'] },
   ];
 

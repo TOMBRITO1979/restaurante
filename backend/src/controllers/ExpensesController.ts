@@ -382,6 +382,20 @@ export class ExpensesController {
 
       const { startDate, endDate, categoryId, supplier } = req.query;
 
+      // Buscar configurações da empresa
+      const settingsResult = await db.$queryRawUnsafe(`
+        SELECT * FROM "${tenantSchema}"."company_settings"
+        WHERE "id" = 'default'
+        LIMIT 1
+      `) as any[];
+
+      const settings = settingsResult[0] || {
+        companyName: 'Minha Empresa',
+        address: '',
+        phone: '',
+        email: '',
+      };
+
       let whereConditions: string[] = [];
       const params: any[] = [];
 
@@ -439,8 +453,31 @@ export class ExpensesController {
       // Pipe do PDF para a resposta
       doc.pipe(res);
 
+      // Cabeçalho da empresa
+      doc.fontSize(16).font('Helvetica-Bold').text(settings.companyName, { align: 'center' });
+      doc.moveDown(0.5);
+
+      if (settings.address || settings.city || settings.state) {
+        const addressParts = [];
+        if (settings.address) addressParts.push(settings.address);
+        if (settings.city) addressParts.push(settings.city);
+        if (settings.state) addressParts.push(settings.state);
+        doc.fontSize(9).font('Helvetica').text(addressParts.join(', '), { align: 'center' });
+      }
+
+      if (settings.phone || settings.email) {
+        const contactParts = [];
+        if (settings.phone) contactParts.push(`Tel: ${settings.phone}`);
+        if (settings.email) contactParts.push(`Email: ${settings.email}`);
+        doc.fontSize(9).text(contactParts.join(' | '), { align: 'center' });
+      }
+
+      doc.moveDown(1);
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown(1);
+
       // Título
-      doc.fontSize(20).text('Relatório de Despesas', { align: 'center' });
+      doc.fontSize(20).font('Helvetica-Bold').text('Relatório de Despesas', { align: 'center' });
       doc.moveDown();
 
       // Período
