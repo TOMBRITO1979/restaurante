@@ -122,6 +122,100 @@ docker service logs -f restaurante_backend
 docker service logs -f restaurante_frontend
 ```
 
+## Multi-Tenant Deployment
+
+### Deploying for Multiple Companies
+
+The system supports multiple deployment strategies for serving different companies:
+
+#### Option 1: Multiple Instances (Recommended)
+
+Each company gets dedicated frontend and backend instances with custom domains:
+
+**Advantages:**
+- Complete isolation (application + data)
+- Independent scaling
+- Custom branding per company
+- Isolated failures
+
+**Deploy Steps:**
+
+1. **Create environment file** for the company:
+```bash
+cp .env.example .env.empresa-nome
+nano .env.empresa-nome
+```
+
+2. **Configure domains and variables**:
+```bash
+FRONTEND_DOMAIN=empresa.com
+BACKEND_DOMAIN=api.empresa.com
+FRONTEND_URL=https://empresa.com
+JWT_SECRET=unique-secret-per-company
+# ... other variables
+```
+
+3. **Run automated deploy**:
+```bash
+./deploy-new-company.sh empresa-nome
+```
+
+The script will:
+- Build frontend with custom API URL
+- Create company-specific stack file
+- Deploy to Docker Swarm
+- Configure Traefik routing and SSL
+
+4. **Create company in system**:
+- Login as SUPER_ADMIN
+- Go to "Empresas" > "Nova Empresa"
+- System creates tenant schema automatically
+- Create ADMIN user for the company
+
+#### Option 2: Single Instance with Subdomains
+
+One instance serves multiple companies via subdomains:
+
+**Configuration:**
+- empresa-a.meurestaurante.com
+- empresa-b.meurestaurante.com
+
+See `DEPLOY-MULTI-TENANT.md` for detailed instructions.
+
+#### Key Files
+
+- `.env.example` - Template with all environment variables
+- `docker-stack.yml` - Base stack configuration with variable support
+- `deploy-new-company.sh` - Automated deployment script
+- `DEPLOY-MULTI-TENANT.md` - Complete multi-tenant guide
+
+#### Environment Variables for Multi-Tenant
+
+The docker-stack.yml supports these variables:
+
+- `FRONTEND_DOMAIN` - Frontend URL (e.g., restaurante.com)
+- `BACKEND_DOMAIN` - Backend API URL (e.g., api.restaurante.com)
+- `FRONTEND_URL` - Full frontend URL for CORS
+- `POSTGRES_PASSWORD` - Can be shared across instances
+- `JWT_SECRET` - Should be unique per company for token isolation
+- `AWS_S3_BUCKET` - Can use same bucket with prefixes or separate buckets
+- `SMTP_*` - Email configuration per company
+
+#### Database Sharing
+
+All companies share the same PostgreSQL instance:
+- Each company gets a unique schema (`tenant_xxxxx`)
+- Complete data isolation via schema separation
+- Shared infrastructure reduces costs
+- Independent backups per schema possible
+
+```bash
+# Backup single company
+docker exec postgres_container \
+  pg_dump -U postgres -d restaurante -n tenant_xxxxx \
+  > backup-empresa.sql
+```
+
 ## Authentication & Authorization
 
 ### Three User Roles
@@ -546,7 +640,7 @@ whereConditions.push(`"closedAt" >= $${params.length + 1}::timestamp`);
 - `@types/pdfkit`: TypeScript definitions
 - `csv-writer`: CSV file generation
 
-## Current Status (Oct 31, 2025)
+## Current Status (Nov 01, 2025)
 
 ### ✅ Working Features
 - User authentication and login
@@ -561,14 +655,14 @@ whereConditions.push(`"closedAt" >= $${params.length + 1}::timestamp`);
 - User management
 - **Orders/Tabs management** (comandas) - List and manage open tabs
 - **Expense Management** (Admin only) - Track expenses with recurring automation
-<<<<<<< HEAD
 - **Reports & Analytics** (Admin only) - Comprehensive business intelligence reports
-=======
 - **Expense Export** (Admin only) - PDF and CSV export with filters
 - **Sales History Export** - PDF and CSV export with date filters
 - **Sales Statistics** - Real-time stats with total sales, revenue, and average ticket
 - **Date Filters** - Filter expenses and sales by date range with pt-BR format display
->>>>>>> 4439bc8 (docs: Update CLAUDE.md with export features and recent improvements)
+- **Company Settings** (Admin only) - Manage company information (name, address, contact)
+- **PDF Customization** - PDFs include company information in headers
+- **Multi-Tenant Deploy** - Support for multiple companies with custom domains
 
 ### ⚠️ Known Issues
 
