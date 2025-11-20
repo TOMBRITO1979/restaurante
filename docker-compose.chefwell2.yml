@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  # PostgreSQL para chefwell2 (desenvolvimento)
+  postgres_dev:
+    image: postgres:16-alpine
+    container_name: chefwell2_postgres
+    environment:
+      POSTGRES_DB: chefwell2_restaurante
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5433:5432"  # Porta diferente para não conflitar com produção
+    volumes:
+      - chefwell2_postgres_data:/var/lib/postgresql/data
+    networks:
+      - chefwell2_internal
+    restart: unless-stopped
+
+  # Backend para chefwell2 (desenvolvimento)
+  backend_dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: chefwell2_backend
+    environment:
+      # Database
+      DATABASE_URL: postgresql://postgres:postgres123@postgres_dev:5432/chefwell2_restaurante?schema=public
+
+      # JWT
+      JWT_SECRET: chefwell2-dev-secret-key-change-in-production
+      JWT_EXPIRES_IN: 7d
+
+      # Storage Provider (local for dev)
+      STORAGE_PROVIDER: local
+      LOCAL_STORAGE_PATH: ./uploads
+      LOCAL_STORAGE_BASE_URL: http://localhost:3001/uploads
+
+      # SMTP (use mesmas credenciais)
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_SECURE: false
+      SMTP_USER: appchefwell@gmail.com
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: "ChefWell Dev <appchefwell@gmail.com>"
+
+      # Stripe (usar chaves de teste)
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY_TEST}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY_TEST}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET_TEST}
+      STRIPE_CURRENCY: brl
+
+      # Application
+      NODE_ENV: development
+      PORT: 3000
+      FRONTEND_URL: http://localhost:3002
+    ports:
+      - "3001:3000"  # Backend acessível em localhost:3001
+    volumes:
+      - ./backend:/app
+      - chefwell2_uploads:/app/uploads
+      - /app/node_modules  # Prevent overwriting node_modules
+    networks:
+      - chefwell2_internal
+    depends_on:
+      - postgres_dev
+    restart: unless-stopped
+    command: npm run dev  # Hot reload durante desenvolvimento
+
+  # Frontend para chefwell2 (desenvolvimento)
+  frontend_dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3001
+    container_name: chefwell2_frontend
+    environment:
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "3002:80"  # Frontend acessível em localhost:3002
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    networks:
+      - chefwell2_internal
+    depends_on:
+      - backend_dev
+    restart: unless-stopped
+
+networks:
+  chefwell2_internal:
+    driver: bridge
+
+volumes:
+  chefwell2_postgres_data:
+  chefwell2_uploads:

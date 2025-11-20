@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  postgres_staging:
+    image: postgres:16-alpine
+    container_name: chefwell_postgres_staging
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: staging123
+      POSTGRES_DB: restaurante_staging
+    ports:
+      - "5433:5432"  # Porta diferente da produção (5432)
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+    networks:
+      - staging_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend_staging:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: chefwell_backend_staging
+    environment:
+      DATABASE_URL: postgresql://postgres:staging123@postgres_staging:5432/restaurante_staging?schema=public
+      JWT_SECRET: staging-secret-key-for-testing-only-not-production
+      NODE_ENV: staging
+      PORT: 3001
+      FRONTEND_URL: http://localhost:3002
+    ports:
+      - "3001:3001"  # Porta diferente da produção (3000)
+    depends_on:
+      postgres_staging:
+        condition: service_healthy
+    networks:
+      - staging_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  staging_postgres_data:
+    driver: local
+
+networks:
+  staging_network:
+    driver: bridge
